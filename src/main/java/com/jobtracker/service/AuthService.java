@@ -1,10 +1,15 @@
 package com.jobtracker.service;
+
 import com.jobtracker.dto.LoginRequest;
 import com.jobtracker.dto.LoginResponse;
-import com.jobtracker.security.JwtUtil;
 import com.jobtracker.dto.RegisterRequest;
+
 import com.jobtracker.entity.User;
+
 import com.jobtracker.repository.UserRepository;
+
+import com.jobtracker.security.JwtUtil;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +17,12 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
+
     private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder) {
+    public AuthService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -31,7 +38,8 @@ public class AuthService {
                 passwordEncoder.encode(request.getPassword())
         );
 
-        user.setRole(request.getRole());
+        // Default role
+        user.setRole("USER");
 
         userRepository.save(user);
 
@@ -40,22 +48,25 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
 
-    User user = userRepository.findByUsername(
-                    request.getUsername())
-            .orElseThrow(() ->
-                    new RuntimeException("Invalid username"));
+        User user = userRepository.findByUsername(
+                        request.getUsername())
+                .orElseThrow(() ->
+                        new RuntimeException("Invalid username"));
 
-    boolean matches = passwordEncoder.matches(
-            request.getPassword(),
-            user.getPassword()
-    );
+        boolean matches = passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword()
+        );
 
-    if (!matches) {
-        throw new RuntimeException("Invalid password");
+        if (!matches) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        String token = JwtUtil.generateToken(
+                user.getUsername(),
+                user.getRole()
+        );
+
+        return new LoginResponse(token);
     }
-
-    String token = JwtUtil.generateToken(user.getUsername());
-
-    return new LoginResponse(token);
-}
 }
