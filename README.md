@@ -77,3 +77,7 @@ mvn spring-boot:run
 ## 👩‍💻 Developed By
 
 Deepa Kadam
+
+## 📸 Project Screenshot
+
+![Swagger UI](screenshots/swagger-ui.png)
